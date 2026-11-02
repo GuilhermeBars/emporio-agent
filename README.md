@@ -8,6 +8,8 @@ Author: [Guilherme Bars](https://guilhermebars.com).
 
 ## How to run
 
+> **API keys:** each person runs the agent with their own key (e.g. a free Groq key from https://console.groq.com/keys), set as an environment variable or in a local `.env` copied from `.env.example`. `.env` is git-ignored; no key is ever committed to this repo.
+
 Requires Python 3.10+. Run commands from the project root.
 
 Linux/macOS (bash):
