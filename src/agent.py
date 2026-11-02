@@ -37,10 +37,15 @@ class Agent:
     def __init__(self, model=None, *, client=None):
         if client is None:
             config = ProviderConfig.from_env()
-            from openai import OpenAI
+            if config.provider == "codex":
+                from .codex_provider import CodexClient
 
-            self.client = OpenAI(base_url=config.base_url, api_key=config.api_key,
-                                 timeout=60.0, max_retries=2)
+                self.client = CodexClient()
+            else:
+                from openai import OpenAI
+
+                self.client = OpenAI(base_url=config.base_url, api_key=config.api_key,
+                                     timeout=60.0, max_retries=2)
             self.model = model or config.model
         else:
             self.client = client

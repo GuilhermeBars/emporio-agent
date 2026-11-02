@@ -11,6 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.agent import Agent
+from src.codex_provider import CodexClient, CodexError
 from src.tools import get_today
 
 
@@ -63,7 +64,7 @@ def fenced(text: str, language: str = "text") -> str:
 def render_transcript(name: str, model: str, messages: list[dict], started: str,
                       status: str = "complete") -> str:
     lines = [f"# {name}", "", f"Model: `{model}`", f"Started (UTC): {started}",
-             f"Status: {status}", "", "Source: real LLM API responses; local tools use the supplied case data.", ""]
+             f"Status: {status}", "", "Source: real LLM responses; local tools use the supplied case data.", ""]
     for message in messages:
         role = message["role"]
         if role == "system":
@@ -118,7 +119,11 @@ def main(argv=None) -> int:
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
-    from openai import OpenAIError
+    provider_errors = (CodexError, ValueError, OSError)
+    if not isinstance(first_agent.client, CodexClient):
+        from openai import OpenAIError
+
+        provider_errors += (OpenAIError,)
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     failed = 0
@@ -127,7 +132,7 @@ def main(argv=None) -> int:
             agent = first_agent if index == 0 else Agent()
             path = record_scenario(agent, name, turns, args.output_dir)
             print(f"Saved {path}")
-        except (OpenAIError, ValueError, OSError) as exc:
+        except provider_errors as exc:
             failed += 1
             print(f"Failed {name} ({type(exc).__name__}); inspect any .partial.md file.", file=sys.stderr)
     return 1 if failed else 0

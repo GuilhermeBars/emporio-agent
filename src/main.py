@@ -6,6 +6,7 @@ if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.agent import Agent
+from src.codex_provider import CodexClient, CodexError
 
 
 def main() -> int:
@@ -17,7 +18,11 @@ def main() -> int:
     except ValueError as exc:
         print(str(exc), file=sys.stderr)
         return 1
-    from openai import OpenAIError
+    api_errors = ()
+    if not isinstance(agent.client, CodexClient):
+        from openai import OpenAIError
+
+        api_errors = (OpenAIError,)
 
     print("Empório da Música - digite 'sair' para encerrar.\n")
     try:
@@ -29,7 +34,9 @@ def main() -> int:
                 continue
             try:
                 print(f"Toninho: {agent.chat(message)}\n")
-            except OpenAIError:
+            except CodexError:
+                print("Falha ao consultar o Codex CLI. Confira a instalação, a autenticação e a conexão.")
+            except api_errors:
                 print("Falha ao consultar o provedor. Confira a chave, o modelo e a conexão.")
     except (EOFError, KeyboardInterrupt):
         print("\nAté mais!")
