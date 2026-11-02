@@ -130,3 +130,27 @@ to replace completed transcripts, or `--output-dir PATH` to choose another direc
 Review the outputs for factual accuracy and expected tool usage; successful API calls alone
 do not certify correct agent behavior. No transcripts are fabricated when credentials or
 network access are unavailable.
+
+### How the committed examples were generated (transparency note)
+
+The five transcripts currently in [`examples/`](examples/) were recorded on 2026-11-02 by
+running this agent with the optional **`codex` provider** (`LLM_PROVIDER=codex`). In that mode
+the agent's tool-calling loop, tools and data are exactly the same, but each LLM turn is
+answered by the **OpenAI Codex CLI** (`codex exec`, run as a subprocess in a read-only
+sandbox) authenticated with Guilherme's own ChatGPT login, so no API key was used or
+committed. Codex is instructed to act only as the chat model and to reply with a JSON object
+(`content` and/or `tool_calls`); the agent then executes the tools locally. The transcripts
+are labeled with model `codex-cli`.
+
+To reproduce (requires an installed, logged-in Codex CLI):
+
+```powershell
+$env:LLM_PROVIDER = "codex"
+$env:CODEX_BIN = "C:\path\to\codex.exe"   # optional; defaults to "codex" on PATH
+$env:CODEX_TIMEOUT = "240"                # optional; seconds per LLM turn (default 180)
+.\.venv\Scripts\python.exe scripts/record_examples.py --overwrite --output-dir my-examples
+```
+
+Evaluators do **not** need Codex: leave `LLM_PROVIDER` unset and use your own Groq or
+OpenAI key (`GROQ_API_KEY` / `OPENAI_API_KEY`) as described in "How to run". Results will
+differ slightly by model. `.env` stays git-ignored.
