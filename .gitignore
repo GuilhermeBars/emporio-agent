@@ -1,0 +1,7 @@
+.env
+__pycache__/
+.venv/
+.pytest_cache/
+*.py[cod]
+# Local assistant session output (may contain private context).
+codex-prep.txt
